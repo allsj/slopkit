@@ -179,6 +179,42 @@
     max-width:100%; margin:0 auto; }
   #payloadMenu .payloadTile.busy { opacity:.42; }
 
+  #payloadMenu .payloadTile.textTile {
+    height:72px; display:flex; align-items:center;
+    background:#1a1f2e; border:2px solid #2a3145;
+    padding:0 16px; gap:14px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  #payloadMenu .payloadTile.textTile .tIcon {
+    width:42px; height:42px; border-radius:50%;
+    background:#3b82f6; display:flex; align-items:center;
+    justify-content:center; font-size:11px; font-weight:800;
+    color:#fff; flex-shrink:0; letter-spacing:.02em;
+  }
+  #payloadMenu .payloadTile.textTile .tTitle {
+    font-size:15px; font-weight:800; color:#fff; letter-spacing:.05em;
+  }
+  #payloadMenu .payloadTile.textTile .tSub {
+    font-size:11px; color:#7a8a9a; margin-top:2px;
+  }
+  #payloadMenu .payloadTile.textTile[data-state="sending"] {
+    border-color:#b8860b; background:#2a2210;
+  }
+  #payloadMenu .payloadTile.textTile[data-state="sending"] .tIcon { background:#daa520; }
+  #payloadMenu .payloadTile.textTile[data-state="sending"] .tTitle { color:#f0d060; }
+  #payloadMenu .payloadTile.textTile[data-state="sending"] .tSub { color:#d4a840; }
+  #payloadMenu .payloadTile.textTile[data-state="sent"] {
+    border-color:#2e7d32; background:#0e2a10;
+  }
+  #payloadMenu .payloadTile.textTile[data-state="sent"] .tIcon { background:#4caf50; }
+  #payloadMenu .payloadTile.textTile[data-state="sent"] .tTitle { color:#66ff6a; }
+  #payloadMenu .payloadTile.textTile[data-state="sent"] .tSub { color:#4caf50; }
+  #payloadMenu .payloadTile.textTile[data-state="failed"] {
+    border-color:#922; background:#2a0e10;
+  }
+  #payloadMenu .payloadTile.textTile[data-state="failed"] .tIcon { background:#e74856; }
+  #payloadMenu .payloadTile.textTile[data-state="failed"] .tTitle { color:#ff6473; }
+  #payloadMenu .payloadTile.textTile[data-state="failed"] .tSub { color:#e74856; }
+
   #wrap { display:none !important; }
 </style>
 </head>
@@ -203,6 +239,8 @@
   <a class="payloadTile" href="#" data-name="klogsrv-ps5.elf" data-key="klog"><img data-src="../ui/payload-klog-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="shsrv-ps5.elf" data-key="shell"><img data-src="../ui/payload-shell-default.png" alt=""></a>
   <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
+  <a class="payloadTile textTile" href="#" data-name="pldmgr_v0.5.1.elf" data-key="pldmgr" data-sub="Payload manager v0.5.1"><span class="tIcon">PLM</span><span class="tBody"><span class="tTitle">PAYLOAD MANAGER</span><span class="tSub">Payload manager v0.5.1</span></span></a>
+  <a class="payloadTile textTile" href="#" data-name="ps5-syslang-zh-Hans-v0.2.elf" data-key="syslang" data-sub="切换系统语言为简体中文"><span class="tIcon">中文</span><span class="tBody"><span class="tTitle">系统语言</span><span class="tSub">切换系统语言为简体中文</span></span></a>
 </div>
 <div id="nav"></div>
 <div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs
@@ -469,7 +507,7 @@ const rowByKey = new Map();
 let payloadSendBusy = false;
 const PAYLOAD_PORT = 9021;
 const PAYLOAD_BUFFER_SIZE = 0x10000;
-const PAYLOAD_MAX_SIZE = 0x200000;
+const PAYLOAD_MAX_SIZE = 0x300000;
 let payloadSendStore = null;
 let payloadSockaddrStore = null;
 let payloadSocketOptionStore = null;
@@ -497,6 +535,16 @@ function setPayloadTileState(tile, state) {
     const key = tile.getAttribute("data-key");
     if (image && key)
         image.setAttribute("src", "../ui/payload-" + key + "-" + state + ".png");
+    if (tile.classList.contains("textTile")) {
+        tile.setAttribute("data-state", state);
+        const sub = tile.getElementsByClassName("tSub")[0];
+        if (sub) {
+            if (state === "sending") sub.textContent = "Sending to elfldr...";
+            else if (state === "sent") sub.textContent = "Sent to console";
+            else if (state === "failed") sub.textContent = "Send failed";
+            else sub.textContent = tile.getAttribute("data-sub") || "";
+        }
+    }
 }
 
 function payloadIsListed(name) {
@@ -563,7 +611,7 @@ async function sendPayloadToElfldr(name) {
     if (!bytes.length)
         throw new Error("payload is empty");
     if (bytes.length > PAYLOAD_MAX_SIZE)
-        throw new Error("payload is larger than the 2 MiB limit");
+        throw new Error("payload is larger than the 3 MiB limit");
     if (bytes.length < 4 || bytes[0] !== 0x7f || bytes[1] !== 0x45
         || bytes[2] !== 0x4c || bytes[3] !== 0x46)
         throw new Error("payload does not start with the ELF signature");
@@ -650,17 +698,21 @@ async function sendPayloadToElfldr(name) {
         closeWarning: closeWarning };
 }
 
+function tileBaseClass(t) {
+    return t.classList.contains("textTile") ? "payloadTile textTile" : "payloadTile";
+}
+
 async function sendPayloadInPlace(name, tile) {
     if (payloadSendBusy) return;
     payloadSendBusy = true;
     const tiles = payloadMenuEl.getElementsByTagName("a");
     for (let i = 0; i < tiles.length; ++i)
-        tiles[i].className = "payloadTile busy";
-    tile.className = "payloadTile";
+        tiles[i].className = tileBaseClass(tiles[i]) + " busy";
+    tile.className = tileBaseClass(tile);
     setPayloadTileState(tile, "sending");
     try {
         const result = await sendPayloadToElfldr(name);
-        tile.className = "payloadTile";
+        tile.className = tileBaseClass(tile);
         setPayloadTileState(tile, "sent");
         flushMark("ELF-SENT", "name=" + clean(result.name) + "-bytes="
             + result.bytes + "-target=" + clean(result.target)
@@ -669,7 +721,7 @@ async function sendPayloadInPlace(name, tile) {
             flushMark("ELF-SOCKET-CLOSE-WARN", "name=" + clean(result.name)
                 + "-why=" + clean(result.closeWarning.message || result.closeWarning));
     } catch (error) {
-        tile.className = "payloadTile";
+        tile.className = tileBaseClass(tile);
         setPayloadTileState(tile, "failed");
         flushMark("ELF-SEND-FAILED", "name=" + clean(name) + "-why="
             + clean(error && error.message ? error.message : error));
@@ -677,13 +729,13 @@ async function sendPayloadInPlace(name, tile) {
         if (payloadSenderBlocked) {
             payloadSendBusy = true;
             for (let i = 0; i < tiles.length; ++i)
-                tiles[i].className = "payloadTile busy";
+                tiles[i].className = tileBaseClass(tiles[i]) + " busy";
             setCatResult(false);
             flushMark("ELF-SENDER-BLOCKED", clean(payloadSenderBlocked));
         } else {
             payloadSendBusy = false;
             for (let i = 0; i < tiles.length; ++i)
-                if (tiles[i] !== tile) tiles[i].className = "payloadTile";
+                if (tiles[i] !== tile) tiles[i].className = tileBaseClass(tiles[i]);
             try { tile.focus(); } catch (e) { }
         }
     }
