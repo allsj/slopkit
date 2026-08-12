@@ -189,7 +189,7 @@
 </style>
 </head>
 <body class="quiet">
-<div id="failureMessage">UNLUCKY &mdash; YOU NEED TO REBOOT</div>
+<div id="failureMessage">运气不佳 &mdash; 请重启后再试</div>
 <div id="statusIcon" class="running">
   <svg viewBox="0 0 24 24" fill="none" stroke="#5e81ac" stroke-width="1.6"
        stroke-linecap="round" stroke-linejoin="round">
@@ -202,7 +202,7 @@
 <div id="reboot"></div>
 <div id="verdict"></div>
 <div id="danger"></div>
-<div id="stage">idle</div>
+<div id="stage">等待中</div>
 <div id="vitals"></div>
 <div id="cfg"></div>
 <pre id="early"></pre>
@@ -216,8 +216,7 @@
   <a class="payloadTile" href="#" data-name="websrv-ps5.elf" data-key="web"><img data-src="../ui/payload-web-default.png" alt=""></a>
 </div>
 <div id="nav"></div>
-<div id="arm" hidden>Open this page with <b>?go=1</b> to arm it. Nothing runs
-otherwise.</div>
+<div id="arm" hidden>请使用 <b>?go=1</b> 参数打开此页面以启动。否则不会执行任何操作。</div>
 <div id="wrap">
 <table>
   <thead><tr><th>#</th><th>test</th><th>st</th><th>result</th></tr></thead>
@@ -399,8 +398,8 @@ function screenMark(tag, extra) {
         document.body.classList.add("loader-ready");
         clearFailureBanners();
         setCatResult(true);
-        showVerdict(false, "ELF LOADER READY");
-        stage("ELF LOADER READY", "ok");
+        showVerdict(false, "ELF 加载器就绪");
+        stage("ELF 加载器就绪", "ok");
     }
     if (line.length > 110) line = line.slice(0, 107) + "...";
     screenLine(line);
@@ -662,16 +661,39 @@ async function sendPayloadToElfldr(name, skipListCheck) {
 }
 
 async function autoLaunchPldmgr() {
-    stage("Launching Payload Manager...", "ok");
+    stage("正在启动 Payload Manager...", "ok");
     try {
         const result = await sendPayloadToElfldr("pldmgr_v0.5.1.elf", true);
         flushMark("PLDMGR-AUTO-SENT", "bytes=" + result.bytes);
-        stage("Payload Manager launched", "ok");
+        showDoneScreen(true);
+        return true;
     } catch (error) {
         flushMark("PLDMGR-AUTO-FAILED", "why="
             + clean(error && error.message ? error.message : error));
-        stage("Payload Manager launch failed: "
-            + (error && error.message ? error.message : error), "bad");
+        showDoneScreen(false, error && error.message ? error.message : error);
+        return false;
+    }
+}
+
+function showDoneScreen(success, errorMsg) {
+    var icon = document.getElementById("statusIcon");
+    if (icon) {
+        icon.className = success ? "ok" : "bad";
+        icon.innerHTML = success
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="#47c76a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="#e74856" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    }
+    var stageEl = document.getElementById("stage");
+    if (stageEl) {
+        if (success) {
+            stageEl.className = "ok";
+            stageEl.innerHTML = "Payload Manager 已启动"
+                + '<div style="font-size:14px;color:#7a9a7f;margin-top:4px">'
+                + '现在可以关闭此页面</div>';
+        } else {
+            stageEl.className = "bad";
+            stageEl.textContent = "Payload Manager 启动失败: " + (errorMsg || "未知错误");
+        }
     }
 }
 
@@ -764,7 +786,7 @@ function vitals(text) { vitalsEl.textContent = text; vitalsEl.className = "on"; 
 function showVerdict(reboot, text) {
     if (reboot) setCatResult(false);
     if (elfldrSpawned && reboot) {
-        rebootEl.textContent = "ELF LOADER READY";
+        rebootEl.textContent = "ELF 加载器就绪";
         rebootEl.className = "on fine";
         return;
     }
@@ -1406,22 +1428,22 @@ async function runLadder() {
         clearFailureBanners();
         setCatResult(true);
         showVerdict(false, payloadSuccess
-            ? "ELF LOADER READY -- returning to the payload menu."
-            : "SUCCESS -- all executed checks passed."
+            ? "ELF 加载器就绪 -- 正在启动 Payload Manager"
+            : "成功 -- 所有检查均已通过"
                 + (mustReboot
-                    ? "\n\nThe jailbreak changed this boot's kernel state; reboot before running it again."
-                    : "\n\nCleanup completed and the run may be repeated safely."));
+                    ? "\n\n越狱已修改本次启动的内核状态，再次运行前请先重启。"
+                    : "\n\n清理已完成，可以安全地重复运行。"));
     } else if (mustReboot) {
         setCatResult(false);
-        showVerdict(true, (v ? v.text : "reboot now -- the state report and "
-            + "cleanup row (PS7) never ran"
-            + (chainDead ? ", because the ROP chain died at '" + chainDead
-                + "'"
-                : ", so nothing has been verified and this page cannot claim "
-                + "anything was put back."))
-            + "\n\nREBOOT NOW"
+        showVerdict(true, (v ? v.text : "请立即重启 -- 状态报告和"
+            + "清理步骤 (PS7) 未能运行"
+            + (chainDead ? "，因为 ROP 链在 '" + chainDead
+                + "' 处中断"
+                : "，因此无法验证任何内容，也无法确认"
+                + "状态已还原。"))
+            + "\n\n请立即重启"
             + (v && v.all.length > 1
-                ? "\n\nAll reasons:\n  - " + v.all.join("\n  - ") : ""));
+                ? "\n\n所有原因:\n  - " + v.all.join("\n  - ") : ""));
     } else {
 
         const ver = (v && v.verified) || {};
@@ -1472,32 +1494,32 @@ async function runLadder() {
     }));
 
     if (payloadSuccess)
-        stage("ELF LOADER READY -- launching Payload Manager", "ok");
+        stage("ELF 加载器就绪 -- 正在启动 Payload Manager", "ok");
     else if (fullSuccess)
-        stage("SUCCESS -- " + passed + " PASS / 0 FAIL", "ok");
+        stage("成功 -- " + passed + " 通过 / 0 失败", "ok");
     else if (mustReboot)
-        stage("reboot required -- " + passed + " PASS / " + failed + " FAIL", "bad");
+        stage("需要重启 -- " + passed + " 通过 / " + failed + " 失败", "bad");
     else if (failed || aborted)
-        stage("FAILED -- " + passed + " PASS / " + failed + " FAIL", "bad");
+        stage("失败 -- " + passed + " 通过 / " + failed + " 失败", "bad");
     else
-        stage("stages 0-2 complete, nothing triggered, everything put back -- "
-            + passed + " PASS", "ok");
+        stage("阶段 0-2 完成，状态已还原 -- "
+            + passed + " 通过", "ok");
 
     if (payloadSuccess) {
         flushMark("ELFLDR-MENU-INPAGE",
             "no-navigation-parked-racers-and-fds-remain-owned-port=9021");
-        await autoLaunchPldmgr();
-        showPayloadMenu();
+        const pldmgrOk = await autoLaunchPldmgr();
+        if (!pldmgrOk) showPayloadMenu();
     }
 }
 
 async function bootChain() {
     const bootTimer = setTimeout(() => {
         flushMark("BOOT-STALLED", "ms=45000-stage=boot-nothing-changed-yet");
-        stage("boot is taking more than 45 s");
+        stage("启动耗时超过 45 秒");
     }, 45000);
     try {
-        stage("preflight");
+        stage("预检中");
         await preflight();
         refuseReferenceChain();
         await bootPrimitiveAndChain();
@@ -1511,16 +1533,15 @@ async function bootPrimitiveAndChain() {
         flushMark("PRIMITIVE-REUSED", "window.p was already published");
     } else if (typeof window.jbReady === "object" && window.jbReady !== null
         && typeof window.jbReady.then === "function") {
-        stage("waiting for the primitive");
+        stage("等待原语就绪");
         await window.jbReady;
         flushMark("PRIMITIVE-REUSED", "via-window.jbReady");
     } else if (typeof window.run_slopkit === "function") {
-        stage("running slopkit's deserializer bug through window.run_slopkit");
+        stage("正在通过 window.run_slopkit 运行反序列化漏洞");
         await window.run_slopkit(window.fw_str);
         flushMark("PRIMITIVE-REUSED", "via-window.run_slopkit");
     } else {
-        stage("running the webkit bug -- placement is ~1 attempt in 3, it "
-            + "retries itself");
+        stage("正在运行 WebKit 漏洞 -- 约 1/3 概率命中，会自动重试");
 
         // A killed/reloaded WebProcess can restore this history entry with the
         // previous 65k-object SerializedScriptValue graph still attached.  If
@@ -1547,7 +1568,7 @@ async function bootPrimitiveAndChain() {
                     // This is before the large graph is built, so make the
                     // checkpoint durable if the WebProcess dies during setup.
                     flushMark(tag, detail);
-                    stage("exploit attempt " + attempt + " -- waiting for placement");
+                    stage("第 " + attempt + " 次尝试 -- 等待内存布局");
                 } else {
                     queueEvent(tag, detail);
                 }
@@ -1590,7 +1611,7 @@ async function bootPrimitiveAndChain() {
     nogcHard.p = p;
     assertInt64Identity();
 
-    stage("loading poops_lib / threads_lib / twin_lib / poops_stages");
+    stage("正在加载内核模块");
     await loadPoopsModules();
 
     const handoff = window.jbPrepared || null;
@@ -1601,7 +1622,7 @@ async function bootPrimitiveAndChain() {
         prepared = handoff;
         flushMark("CHAIN-REUSED", "window.jbPrepared");
     } else {
-        stage("prepare(): module bases, gadget/syscall tables, worker hijack");
+        stage("正在准备: 模块基址、系统调用表、Worker 劫持");
         flushMark("PREP-ENTER", "");
         prepared = await prepare(p);
         flushMark("PREP-OK", "getpid-passed-inside-prepare");
@@ -1663,7 +1684,7 @@ async function main() {
             + "; will put back mask " + driver.origMaskHex + " and rtprio "
             + driver.origPrioType + "/" + driver.origPrio + "\n" + "chain watchdog " + WATCHDOG_MS + " ms per round trip; every loop " + "on this page is bounded by an iteration count AND a wall clock, " + "and every wait has a deadline.\n";
 
-        stage("running the ladder -- one row at a time");
+        stage("正在执行越狱步骤");
         try {
             await runLadder();
         } finally {
@@ -1738,7 +1759,7 @@ function lastRunText() {
         return;
     }
 
-    stage("checking the one-shot safety latch");
+    stage("正在检查安全锁");
     const l = await latch.read();
     flushMark("LATCH-READ", "set=" + (l.set ? 1 : 0)
         + "-detail=" + clean(l.detail || ""));
@@ -1747,16 +1768,16 @@ function lastRunText() {
     if (l.set && AUTOCLEAR) {
         flushMark("LATCH-AUTOCLEAR", clean(l.detail || ""));
         await latch.clear();
-        stage("latch was set and ?auto=1 cleared it, set by: "
-            + (l.detail || "(no detail)")
-            + "\nassumes the console has been rebooted since that run.");
+        stage("安全锁已由 ?auto=1 自动清除，设置者: "
+            + (l.detail || "(无详情)")
+            + "\n假定主机自上次运行后已重启。");
         l.set = false;
     }
 
     if (l.set) {
         renderNav(STALLED_AT, true);
-        stage("the one-shot latch is set, by: " + (l.detail || "(no detail)")
-            + "\n\nre-arming is only safe after a run that failed in the " + "prologue: setuid(1) is irreversible for the boot and the trigger " + "needs a fresh singly-referenced cred");
+        stage("安全锁已设置，设置者: " + (l.detail || "(无详情)")
+            + "\n\n仅在序幕阶段失败后才可安全重新运行: setuid(1) 在本次启动中不可逆，触发器需要全新的 cred");
         summaryEl.textContent = lastRunText();
         flushMark("POOPS-LATCHED", clean(l.detail || ""));
         return;
@@ -1765,7 +1786,7 @@ function lastRunText() {
     if (!ARMED) {
         document.getElementById("arm").hidden = false;
         renderNav(STALLED_AT, false);
-        stage("not armed" + (STALLED_AT ? " -- and the last run stopped at '"
+        stage("未激活" + (STALLED_AT ? " -- 上次运行停止于 '"
             + STALLED_AT + "'" : ""));
         vitals(vitalsText("if armed with ?go=1 this page will open "));
 
@@ -1793,8 +1814,8 @@ function lastRunText() {
     if (STALLED_AT && !FROM && !ONLY.length) {
 
         renderNav(STALLED_AT, false);
-        stage("the last run stopped at '" + STALLED_AT + "' but the latch is "
-            + "clear, so pick a row explicitly", "bad");
+        stage("上次运行停止于 '" + STALLED_AT + "'，但安全锁已清除，"
+            + "请手动选择行", "bad");
         summaryEl.textContent = lastRunText();
         flushMark("POOPS-STALLED", STALLED_AT);
         return;
@@ -1803,7 +1824,7 @@ function lastRunText() {
     renderNav("", false);
     main().catch(err => {
         const m = (err && err.message) || String(err);
-        stage("boot failed: " + m, "bad");
+        stage("启动失败: " + m, "bad");
         flushMark("POOPS-FAILED", (err && err.name) + ":" + m.slice(0, 160));
         runInFlight = false;
         lockNav(false);
